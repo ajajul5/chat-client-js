@@ -119,6 +119,10 @@
         const userData = decode(urlParams.get('userData'));
         const token = urlParams.get('token');
 
+        if(userData.role == 'user') {
+          $('#kicked-user-list').closest('.userTable').hide();
+        }
+
         // const socket = new WebSocket(`http://192.168.21.53:4000?token=${token}`);
         // var socket = new WebSocket(`ws://192.168.21.53:4000`, ['token', token]);
 
