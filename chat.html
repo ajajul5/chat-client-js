@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+      integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+      crossorigin="anonymous"
+    />
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+    <div class="row">
+        <div class="col-7">
+            <div class="main">
+                <div class="name">
+                  <span><i class="far fa-user"></i></span>
+                  <input type="text" id="name-input" class="name-input" value="anonymous" maxlength="20" />
+                </div>
+          
+                <ul class="message-container" id="message-container">
+                  <!-- These li elements are only for reference, and therefore, they are commented out... -->
+                  <!-- <li class="message-left">
+                    <p class="message">
+                      lorem impsun
+                      <span>bluebird ● 26 July 10:40</span>
+                    </p>
+                  </li>
+          
+                  <li class="message-right">
+                    <p class="message">
+                      lorem impsun
+                      <span>bluebird ● 26 July 10:40</span>
+                    </p>
+                  </li>
+          
+                  <li class="message-feedback">
+                    <p class="feedback" id="feedback">✍️ killer is typing a message...</p>
+                  </li> -->
+                </ul>
+                <div class="reply-storage">
+                  
+                </div>
+                <form class="message-form" id="message-form">
+                  <input type="text" name="message" id="message-input" class="message-input" />
+                  <div class="v-divider"></div>
+                  <button type="submit" class="send-button">
+                    send <span><i class="fas fa-paper-plane"></i></span>
+                  </button>
+                </form>
+          </div>
+
+          <div class="d-grid gap-2 col-6 mx-auto btn-end-block mt-2">
+          </div>
+        </div>
+        <div class="col-5">
+            <div class="row">
+              <div class="col userTable">
+                <table class="table table-hover">
+                  <thead>
+                    <th colspan="3">
+                      Users <span class="joinedUsersCount"></span>
+                    </th>
+                  </thead>
+                  <tbody id="user-list">
+
+                  </tbody>
+                </table>
+              </div>
+              <div class="col userTable">
+                <table class="table table-hover">
+                  <thead>
+                    <th colspan="3">
+                      Kicked Users <span class="kickedUsersCount"></span>
+                    </th>
+                  </thead>
+                  <tbody id="kicked-user-list">
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.28.0/moment.min.js"
+      integrity="sha512-Q1f3TS3vSt1jQ8AwP2OuenztnLU6LwxgyyYOG1jgMW/cbEMHps/3wjvnl1P3WTrF3chJUWEoxDUEjMxDV8pujg=="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      let parentMessageReferenceNumber;
+      function encode(obj) {
+          return btoa(JSON.stringify(obj))
+        }
+        
+        function decode(encoded) {
+          if(encoded) {
+            return JSON.parse(atob(encoded));
+          } else {
+            return {};
+          }
+        }
+      
+        const urlParams = new URLSearchParams(window.location.search);
+        const userData = decode(urlParams.get('userData'));
+        const token = urlParams.get('token');
+
+        // const socket = new WebSocket(`http://192.168.21.53:4000?token=${token}`);
+        // var socket = new WebSocket(`ws://192.168.21.53:4000`, ['token', token]);
+
+        // socket.addEventListener('joinRoom', (event) => {
+          // console.log('WebSocket connection established');
+          // socket.send('Hello Server!');
+        // });
+
+        // const socket = new WebSocket(`ws://192.168.0.222:4000?token=${token}`);
+        // const socket = io(YOUR_SEOCKET_URL, {
+        //     extraHeaders: {
+        //         Authorization: `Bearer ${token}`,
+        //     }
+        // });
+
+        const socket = io(YOUR_SEOCKET_URL, {
+                query: { token: token },
+                transports: ['websocket'],
+            });
+
+        console.log('this is socket', socket);
+        console.log('userData', userData);
+
+        socket.on('roomUsersList', (data) => {
+          console.log('roomUsersList', data);
+            const tbody = $('#user-list');
+            tbody.html('');
+            $('.joinedUsersCount').text(``);
+            $.each(data.data.list, function(i, row) {
+                let name = row.user.attributes.display_name;
+                let role = row.user.role == 'moderator' ? '(moderator)' : '';
+                let btnBlock = userData.role == 'moderator' && row.user.role == 'user' ?
+                `<button type="button" class="btn btn-sm btn-danger" onClick="blockMe('${row.user.roomUserReferenceNumber}')">
+                  <i class="fas fa-ban"></i>
+                </button` : ``; 
+                tbody.append(`
+                <tr>
+                  <td>${i+1}</li>
+                  <td>${name} <i>${role}</i></li>
+                  <td>${btnBlock}</td>
+                </tr>
+                `);
+                $('.joinedUsersCount').text(`(${i+1})`);
+            })
+        })
+        
+        socket.on('kickedUserList', (data) => {
+          console.log('kickedUserList', data);
+            const tbody = $('#kicked-user-list');
+            tbody.html('');
+            $('.kickedUsersCount').text(``);
+            $.each(data.data.list, function(i, row) {
+                let name = row.displayName;
+                let btnBlock = userData.role == 'moderator' ?
+                `<button type="button" class="btn btn-sm btn-success" onClick="unblockMe('${row.roomUserReferenceNumber}')">
+                  <i class="fas fa-undo"></i>
+                </button>` : ``; 
+                tbody.append(`
+                <tr>
+                  <td>${i+1}</li>
+                  <td>${name}</li>
+                  <td>${btnBlock}</td>
+                </tr>
+                `);
+                $('.kickedUsersCount').text(`(${i+1})`);
+            })
+        })
+
+        
+
+        function blockMe(roomUserReferenceNumber) {
+          socket.emit('kickOutUser', {roomUserReferenceNumber : roomUserReferenceNumber})
+        }
+
+        function unblockMe(roomUserReferenceNumber) {
+          socket.emit('allowKickeOutdUser', {roomUserReferenceNumber : roomUserReferenceNumber})
+        }
+
+        const clientsTotal = document.getElementById('client-total')        
+        const messageContainer = document.getElementById('message-container')
+        const nameInput = document.getElementById('name-input')
+        const messageForm = document.getElementById('message-form')
+        const messageInput = document.getElementById('message-input')
+        
+        socket.emit('joinRoom');
+        socket.on('joinedRoom', (data) => {
+          console.log('joinedRoom', data);
+            $('.btn-end-block').html(function() {
+              return userData.role == 'moderator' ? 
+              `<button type="button" class="btn btn-warning btn-disconnect">Disconnect</button>
+              <button type="button" class="btn btn-danger btn-end-class">End Class</button>`
+              : `<button type="button" class="btn btn-warning btn-disconnect">Disconnect</button>`;
+            });
+            
+            $('#name-input').val(data.data.attributes.display_name);            
+        })
+        
+        const messageTone = new Audio('./message-tone.mp3')
+
+        messageForm.addEventListener('submit', (e) => {
+          e.preventDefault()
+          sendMessage()
+        })
+
+
+        function sendMessage() {
+          if (messageInput.value === '') return
+          // console.log(messageInput.value)
+          let data = {
+            text: messageInput.value
+          }
+
+          if(parentMessageReferenceNumber) {
+            data.parentMessageReferenceNumber = parentMessageReferenceNumber;
+            socket.emit('replyMessage', data)
+            $('.btn-close').click();
+          } else {
+            socket.emit('sendMessage', data)
+          }
+          // addMessageToUI(true, data)
+          messageInput.value = ''
+        }
+
+        $(document).on('click','.btn-close', function() {
+          parentMessageReferenceNumber = null;
+          console.log('parentMessageReferenceNumber', parentMessageReferenceNumber);
+        });
+
+        socket.on('receiveMessage', (data) => {
+          console.log('receiveMessage', data)
+          console.log('receiveMessage | userData.userReferenceNumber | data.data.userReferenceNumber' , userData.userReferenceNumber , data.data.userReferenceNumber)
+          if(userData.userReferenceNumber == data.data.userReferenceNumber) {
+            addMessageToUI(true, data)
+          } else {
+            messageTone.play()
+            addMessageToUI(false, data)
+          }
+        })
+        
+        socket.on('deletedMessage', (data) => {
+          $('.message-container').find(`#${data.data.messageReferenceNumber}`).remove();
+        })
+
+        socket.on('repliedMessage', (data) => {
+          console.log('repliedMessage', data)
+          if(userData.userReferenceNumber == data.data.userReferenceNumber) {
+            addMessageToUI(true, data)
+          } else {
+            messageTone.play()
+            addMessageToUI(false, data)
+          }
+        })
+
+        function addMessageToUI(isOwnMessage, data) {
+          clearFeedback()
+          parentMessage =  ('parentMessageReferenceNumber' in data.data.message && data.data.message.parentMessageReferenceNumber !== null && data.data.message.parentMessageReferenceNumber !== '') ? 
+                            `<p><a href="#${data.data.message.parentMessageReferenceNumber}">#${data.data.message.parentMessageReferenceNumber}</a></p>` : ``;
+          let option = `
+          <div class="dropdown">
+            <a class="btn dropdown-toggle ${isOwnMessage ? 'btn-secondary' : 'float-end'}" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-ellipsis-v"></i>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+              ${userData.role == 'moderator' ? `<li class="border-bottom"><button type="button" class="btn w-100 reply-chat">Reply</button></li>` : ``}
+              ${userData.role == 'moderator' || userData.role == 'user' ? `<li class="border-bottom"><button type="button" class="btn w-100 delete-chat">Delete</button></li>` : ``}
+            </ul>
+            <div style="clear: both;"></div>
+          </div>`;
+
+          const element = `
+            <li class="message-list ${isOwnMessage ? 'message-right' : 'message-left'}" id="${data.data.message.messageReferenceNumber}" data-info="${data.data.message.messageReferenceNumber}">
+                ${option}
+                ${parentMessage}
+                <p class="message">
+                  ${data.data.message.text}
+                </p>
+                <p>
+                    <span>${data.data.attributes.display_name} ● ${moment(data.data.message.sendTime).format('YYYY-MM-DD hh:mm:ss A')}</span>
+                </p>
+              </li>
+              `;
+
+          messageContainer.innerHTML += element
+          scrollToBottom()
+        }
+
+        function scrollToBottom() {
+          messageContainer.scrollTo(0, messageContainer.scrollHeight)
+        }
+
+        // messageInput.addEventListener('focus', (e) => {
+        //   socket.emit('feedback', {
+        //     feedback: `✍️ ${nameInput.value} is typing a message`,
+        //   })
+        // })
+
+        messageInput.addEventListener('keypress', (e) => {
+          socket.emit('feedback', {
+            feedback: `✍️ ${nameInput.value} is typing a message`,
+          })
+        })
+        // messageInput.addEventListener('blur', (e) => {
+        //   socket.emit('feedback', {
+        //     feedback: '',
+        //   })
+        // })
+
+        socket.on('feedback', (data) => {
+          clearFeedback()
+          const element = `
+                <li class="message-feedback">
+                  <p class="feedback" id="feedback">${data.feedback}</p>
+                </li>
+          `
+          messageContainer.innerHTML += element
+        })
+
+        function clearFeedback() {
+          document.querySelectorAll('li.message-feedback').forEach((element) => {
+            element.parentNode.removeChild(element)
+          })
+        }
+
+        $(document).on('click', '.delete-chat', function() {
+          if(confirm('Are you sure want to delete')) {
+            const data = {
+              messageReferenceNumber : $(this).closest('.message-list').attr('data-info')
+            }
+            console.log('delete-chat', data);
+            socket.emit('deleteMessage', data)
+          }
+        });
+        $(document).on('click', '.reply-chat', function() {
+          replyElement = $('.reply-storage');
+          let msg = $(this).closest('.message-list').find('.message').html();
+          parentMessageReferenceNumber = $(this).closest('.message-list').attr('data-info');
+          console.log('parentMessageReferenceNumber', parentMessageReferenceNumber);
+          
+          str = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+            ${msg}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>`;
+          replyElement.html(str);
+          $('.message-input').focus();
+        });
+
+        $(document).on('click', '.btn-disconnect', function() {
+          if(confirm('Are you sure want to discoonect')) {
+            window.location = './chat.html';
+          }
+        });
+        $(document).on('click', '.btn-end-class', function() {
+          console.log('btn-end-class btn clicked');
+          if(confirm('Are you sure want to end room')) {
+            socket.emit('deleteRoom')
+          }
+        });
+
+        socket.on('roomDeleted', (data) => {
+          window.location = './chat.html';
+        })
+
+        socket.on('startedStream', (data) => {
+          alert('streamStarted');
+        })
+
+        socket.on('stopedStream', (data) => {
+          alert('stopedStarted');
+        })
+
+        socket.on('kickedOutUser', (data) => {
+          alert('You have been kicked out from this room.');
+          window.location = './chat.html';
+        })
+        
+        socket.on('userRevoked', (data) => {
+          alert('Sorry you are not allowed in this room.');
+          window.location = './chat.html';
+        })
+        
+        socket.on('disconnected', (data) => {
+          window.location = './chat.html';
+        })
+    </script>
+</body>
+</html>

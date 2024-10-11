@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+      integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+      crossorigin="anonymous"
+    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container-fluid">
+        <h1>Chat App</h1>
+        <div class="row">
+            <div class="col-3">
+                <form id="token-form">
+                    
+                    <div class="mb-3">
+                      <textarea name="json" class="form-control" id="jsonInput" rows="17"></textarea>
+                      <div class="mb-3">
+                        Change Class
+                        <select name="class_ref_no" class="form-control" id="classRefNo"> 
+                        </select>
+                      </div>
+                      <textarea name="token" class="form-control" id="tokenInput" rows="8" readonly></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success" id="generate-moderator">Generate Moderator</button>
+                    <button type="button" class="btn btn-secondary" id="generate-user">Generate User</button>
+                    <button type="submit" class="btn btn-primary">Generate Token</button>
+                    <button type="button" class="btn btn-warning" id="join-chat">Join Room</button>
+                </form>
+            </div>
+            <div class="col-9 chat-section">
+                <div class="row">
+                    <div class="col-12">
+                      <iframe id="someFrame" src="./chat.html" frameborder="0" height="900px" width="95%"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        let baseUrl = 'YOUR_API_URL';
+        // let baseUrl = 'http://192.168.0.222:4000';
+        let classRefNo =  $('#classRefNo');
+        let jsonObject = {
+            "attributes": {
+                "display_name": "",
+                "avatar" : "https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg",
+            },
+            "entityReferenceNumber": "CLRNPOOZ8TA1UIK29FAO",
+            "scheduled_timing": "24-08-2024 12:00:00",
+            "userReferenceNumber": "",
+            "role": "",
+            "duration" : 180,
+            "scope": [
+                "SEND_MESSAGE",
+                "DELETE_MESSAGE",
+                "VIEW_POLL_REPORT",
+                "SEND_POLL_REPORT"
+            ]
+          };
+          var nameList = [
+            "Zuber Ansari", "Sonam Gupta", "Arjun Kapoor", "Priya Sharma", "Ravi Mehta", 
+            "Kiran Rao", "Suresh Patel", "Neha Verma", "Rahul Singh", "Anjali Yadav", 
+            "Vikram Joshi", "Sneha Shah", "Kunal Malhotra", "Pooja Nair", "Ramesh Jain", 
+            "Vivek Agrawal", "Isha Chopra", "Naveen Kumar", "Ritu Khanna", "Aman Sethi", 
+            "Preeti Kaushik", "Rohit Batra", "Megha Desai", "Aakash Thakur", "Kavita Das", 
+            "Sunil Chatterjee", "Divya Pillai", "Ajay Bansal", "Manju Varma", "Chetan Iyer", 
+            "Sanjay Dixit", "Aarti Ghosh", "Gaurav Mahajan", "Rina Prasad", "Amit Tandon", 
+            "Shalini Dube", "Kishore Narayan", "Monika Shetty", "Pankaj Bhatt", "Deepti Singh", 
+            "Harish Menon", "Snehal Reddy", "Vijay Chaudhary", "Richa Sen", "Rajesh Kapoor", 
+            "Parul Sinha", "Lokesh Sharma", "Swati Mishra", "Deepak Verma", "Smita Deshmukh", 
+            "Nikhil Khurana", "Bhavna Shah", "Ashok Dubey", "Reena Patel", "Gaurav Mehra", 
+            "Ishita Bhandari", "Vimal Joshi", "Manisha Saxena", "Aditya Rao", "Poonam Shukla", 
+            "Kartik Arora", "Meera Iyer", "Arvind Gupta", "Shikha Thakur", "Nilesh Bhat", 
+            "Asha Sharma", "Kiran Malhotra", "Ashwin Kumar", "Sarita Sen", "Akshay Goyal", 
+            "Varun Jain", "Neeta Agrawal", "Shivani Pillai", "Sandeep Rao", "Rajiv Prasad", 
+            "Simran Mehta", "Yash Agnihotri", "Anita Singh", "Nitin Chawla", "Ankita Sharma", 
+            "Tarun Chauhan", "Vandana Kapoor", "Raj Shetty", "Anil Sethi", "Krishna Reddy", 
+            "Sonia Shah", "Bharat Singh", "Pallavi Joshi", "Armaan Verma", "Dipti Vyas", 
+            "Vishal Chauhan", "Puja Sen", "Sujit Kumar", "Kanchan Desai", "Rahul Mishra", 
+            "Vinay Kumar", "Naina Sharma", "Ajit Patel", "Anushka Iyer", "Mahesh Khurana", 
+            "Farah Kapoor", "Madhav Sinha", "Sushma Rao"
+        ];   
+        function generateName() {
+            return nameList[Math.floor( Math.random() * nameList.length )];
+          };
+          
+        function generateRandomString() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 16; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+      $(document).ready( async function(){
+        let payload = {};
+
+        await axios.get(baseUrl+'/api/v1/room',
+        {
+          headers : {
+              'x-request-id': '654679876564',
+            }
+          },
+        ).then(function (response) {
+          roomList = response.data.data.list;
+          classRefNo.html('<option value="">Choose Class Refrences</option>');
+          $.each(roomList, function (index, row) {           
+            classRefNo.append(`<option value="${row.entityReferenceNumber}" ${jsonObject.entityReferenceNumber == row.entityReferenceNumber ? 'selected' : ''}>${index+1}). ${row.entityReferenceNumber}</option>`);
+          });
+        }).catch(function (error) {
+          alert(error.response.data.message);
+          console.log('error', error);
+        });
+
+        classRefNo.hide();
+      });
+
+      $('#classRefNo').change(function () {
+        jsonObject.entityReferenceNumber = this.value;
+        $('#jsonInput').val(JSON.stringify(jsonObject, null, 4));
+      })
+      
+      $('#token-form').submit(function(e){
+        e.preventDefault();
+        const str = this.json.value;
+        if(!str) {
+          alert('genrate modrator/user for token');
+          return false;
+        };
+        const tokenArea = this.token;
+        payload = JSON.parse(str);
+
+        axios.post(baseUrl+'/api/v1/jwt/token',
+        payload,
+        {
+          headers : {
+              'x-request-id': '654679876564',
+            }
+          },
+        ).then(function (response) {
+          tokenArea.value = response.data.data.token;
+        }).catch(function (error) {
+          alert(error.response.data.message);
+          console.log('error', error);
+        });
+      });
+
+    $('#generate-moderator').click(function(){
+      classRefNo.show();
+      jsonObject.attributes.display_name = generateName();
+      jsonObject.userReferenceNumber = "USRN"+generateRandomString();
+      jsonObject.role = "moderator";
+      $('#jsonInput').val(JSON.stringify(jsonObject, null, 4));
+    });
+
+    $('#generate-user').click(function(){
+      classRefNo.show();
+      jsonObject.attributes.display_name = generateName();
+      jsonObject.userReferenceNumber = "USRN"+generateRandomString();
+      jsonObject.role = "user";
+      $('#jsonInput').val(JSON.stringify(jsonObject, null, 4));
+    });
+    function encode(obj) {
+      return btoa(JSON.stringify(obj))
+    }
+    function decode(encoded) {
+      return JSON.parse(atob(encoded))
+    }
+    $('#join-chat').click(function(){
+      const token = $('#tokenInput').val();
+      if(!token) {
+        alert('Create token first');
+        return false;
+      }
+      userData = JSON.parse($('#jsonInput').val());
+      $(document).attr("title", `${userData.attributes.display_name} | ${userData.role}`);
+      $("#someFrame").attr("src", `./chat.html?token=${token}&userData=${encode(userData)}`);
+    });
+
+
+    </script>
+</body>
+</html>
