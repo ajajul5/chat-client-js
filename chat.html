@@ -137,8 +137,9 @@
         //         Authorization: `Bearer ${token}`,
         //     }
         // });
-
-        const socket = io(YOUR_SEOCKET_URL, {
+        // const socketUrl = 'https://chat-websocket.test.tap2crack.com';
+        const socketUrl = 'http://172.16.1.178:4000';
+        const socket = io(socketUrl, {
                 query: { token: token },
                 transports: ['websocket'],
             });
@@ -208,12 +209,15 @@
         const messageInput = document.getElementById('message-input')
         
         socket.emit('joinRoom');
+        socket.emit('fetchChats');
         socket.on('joinedRoom', (data) => {
           console.log('joinedRoom', data);
             $('.btn-end-block').html(function() {
               return userData.role == 'moderator' ? 
               `<button type="button" class="btn btn-warning btn-disconnect">Disconnect</button>
-              <button type="button" class="btn btn-danger btn-end-class">End Class</button>`
+              <button type="button" class="btn btn-danger btn-end-class">End Class</button>
+              <button type="button" class="btn btn-secondary btn-start-stream">Start Stream</button>
+              <button type="button" class="btn btn-info btn-end-stream">End Stream</button>`
               : `<button type="button" class="btn btn-warning btn-disconnect">Disconnect</button>`;
             });
             
@@ -381,8 +385,24 @@
           }
         });
 
+        $(document).on('click', '.btn-start-stream', function() {
+          // if(confirm('Are you sure want to end room')) {
+            socket.emit('startStream')
+          // }
+        });
+
+        $(document).on('click', '.btn-end-stream', function() {
+          // if(confirm('Are you sure want to end room')) {
+            socket.emit('stopStream')
+          // }
+        });
+
         socket.on('roomDeleted', (data) => {
           window.location = './chat.html';
+        })
+
+        socket.on('fetchedChats', (data) => {
+          alert('chat fetched');
         })
 
         socket.on('startedStream', (data) => {
@@ -395,7 +415,7 @@
 
         socket.on('kickedOutUser', (data) => {
           alert('You have been kicked out from this room.');
-          window.location = './chat.html';
+          // window.location = './chat.html';
         })
         
         socket.on('userRevoked', (data) => {

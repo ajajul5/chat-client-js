@@ -2,7 +2,8 @@ const ioClient = require('socket.io-client');
 
 
 // Configure the number of clients and the server URL
-const SOCKET_SERVER_URL = "https://chat-websocket.test.tap2crack.com/";
+// const SOCKET_SERVER_URL = "https://chat-websocket.test.tap2crack.com/";
+const SOCKET_SERVER_URL = "172.16.1.178";
 const CLIENT_COUNT = 50;  // Number of clients you want to simulate
 function generateRandomString() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -17,7 +18,7 @@ let jsonObject = {
         "display_name": "",
         "avatar" : "https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg",
     },
-    "entityReferenceNumber": "LCRN717275489718Y7L8",
+    "entityReferenceNumber": "CLRNJHKRBJBJGVVVWQRS",
     "userReferenceNumber": "",
     "role": "user",
     "duration" : 180,
