@@ -138,7 +138,7 @@
         //     }
         // });
         // const socketUrl = 'https://chat-websocket.test.tap2crack.com';
-        const socketUrl = 'http://172.16.1.178:4000';
+        const socketUrl = 'http://192.168.0.222:4000';
         const socket = io(socketUrl, {
                 query: { token: token },
                 transports: ['websocket'],
@@ -210,6 +210,30 @@
         
         socket.emit('joinRoom');
         socket.emit('fetchChats');
+        socket.on('fetchedChats', (data) => {
+          console.log('fetchedChats', data);
+          $.each(data.data.list, function(i, row) {
+            console.log('row', row);
+            
+            const temp = {data : {
+              attributes : {
+                display_name : row.sender_display_name,
+              },
+              userReferenceNumber : row.sender_reference_number,
+              message : {
+                messageReferenceNumber : row.message_reference_number,
+                parentMessageReferenceNumber : row.parent_message_reference_number,
+                text : row.message,
+              }
+            }}
+            if(userData.userReferenceNumber == temp.data.userReferenceNumber) {
+              addMessageToUI(true, temp)
+            } else {
+              messageTone.play()
+              addMessageToUI(false, temp)
+            }
+          })
+        })
         socket.on('joinedRoom', (data) => {
           console.log('joinedRoom', data);
             $('.btn-end-block').html(function() {
@@ -399,10 +423,6 @@
 
         socket.on('roomDeleted', (data) => {
           window.location = './chat.html';
-        })
-
-        socket.on('fetchedChats', (data) => {
-          alert('chat fetched');
         })
 
         socket.on('startedStream', (data) => {
