@@ -25,6 +25,21 @@
   overflow-x: scroll;
 }
 
+.reply-chat-block {
+  background: #a39b9b;
+  border-radius: 10px;
+  padding: 0 10px;
+}
+
+.reply-chat-block h5 {
+  color: purple;
+}
+
+
+.reply-chat-block p {
+  color: black;
+}s
+
 .name > span {
   color: #bbb;
 }
